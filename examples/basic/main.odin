@@ -1,33 +1,32 @@
 package main
 
-import "core:fmt"
 import "core:log"
 
 import knz "../../src"
 
-Default_Console_Logger_Opts ::
-	log.Options{.Level, .Terminal_Color} |
-	log.Full_Timestamp_Opts
-
 
 main :: proc(){
-    context.logger = log.create_console_logger(opt = Default_Console_Logger_Opts)
+    context.logger = log.create_console_logger()
 
-
-    info := knz.Window_Create_Info {
-        title = "test",
-        position = knz.Position{ 0, 0},
-        size     = knz.Size{ 860, 640 }
-    }
-
-
-    window: knz.Window
-    result := knz.create(&info, &window)
-    if result != nil {
-        log.error(result)
+    p_window, window_error := knz.create()
+    if window_error != nil {
+        log.errorf("Failed to create window: %d", window_error)
         return
     }
 
-    fmt.printf("%s", window.title)
+
+    event := knz.Event{}
+    game_loop: for {
+        for pending_event := knz.poll_event(p_window, &event); pending_event;  pending_event = knz.poll_event(p_window, &event) {
+            if event.type == .Window_Event {
+                window_event := event.data.(knz.Window_Event)
+                if window_event.type == .Quit {
+                    break game_loop
+                } else if window_event.type == .Resize {
+                    log.info(window_event.data)
+                }
+            }
+        }
+    }
 
 }

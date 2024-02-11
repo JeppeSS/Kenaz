@@ -2,13 +2,40 @@ package kenaz
 
 Window_Error :: union #shared_nil {
     General_Error,
-    Create_Window_Error
+    Create_Window_Error,
+    Poll_Event_Error
 }
 
 
 General_Error :: enum u32 {
     None                = 0,
-    Invalid_Create_Info = 1
+}
+
+// TODO[Jeppe]: Consider naming
+Event :: struct {
+    type: Event_Type,
+    data: union {
+        Window_Event
+    }
+}
+
+Event_Type :: enum u8 {
+    None         = 0,
+    Window_Event = 1,
+    Input_Event  = 2
+}
+
+Window_Event :: struct {
+    type: Window_Event_Type,
+    data: union {
+        Size
+    }
+}
+
+
+Window_Event_Type :: enum u8 {
+    Quit   = 0,
+    Resize = 1
 }
 
 Position :: struct {
@@ -25,7 +52,6 @@ Window_Mode :: enum u8 {
     Windowed   = 0,
     Fullscreen = 1,
     Borderless = 2
-    
 }
 
 
@@ -38,9 +64,16 @@ Window_Create_Info :: struct {
 
 
 Window :: struct {
-    using specific: Window_Os_Specific,
     title:          string,
     position:       Position,
     size:           Size,
-    mode:           Window_Mode
+    mode:           Window_Mode,
+    queue:          [dynamic]Event,
+    is_open:        bool,
+    using specific: Window_Os_Specific
+}
+
+
+is_size_equal :: #force_inline proc "contextless" (s1: Size, s2: Size) -> bool {
+    return s1.height == s2.height && s1.width == s2.width
 }
