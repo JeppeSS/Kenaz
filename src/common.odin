@@ -54,15 +54,6 @@ Window_Mode :: enum u8 {
     Borderless = 2
 }
 
-
-Window_Create_Info :: struct {
-    title:    cstring,
-    position: Position,
-    size:     Size,
-    mode:     Window_Mode
-}
-
-
 Window :: struct {
     title:          string,
     position:       Position,
