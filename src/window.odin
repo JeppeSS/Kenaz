@@ -23,8 +23,6 @@ create :: proc(title := "Kenaz", position := Position{ 0, 0 }, size := Size{ 800
 }
 
 
-poll_event :: proc(p_window: ^Window, p_event: ^Event) -> (pending_event: bool) {
-    p_event.type = .None
-    p_event.data = nil
-    return _poll_event(p_window, p_event)
+poll_event :: proc(p_window: ^Window) -> Event {
+    return _poll_event(p_window)
 }

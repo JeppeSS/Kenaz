@@ -14,10 +14,8 @@ main :: proc(){
         return
     }
 
-
-    event := knz.Event{}
     game_loop: for {
-        for pending_event := knz.poll_event(p_window, &event); pending_event;  pending_event = knz.poll_event(p_window, &event) {
+        for event := knz.poll_event(p_window); event.type != .None; event = knz.poll_event(p_window) {
             if event.type == .Window_Event {
                 window_event := event.data.(knz.Window_Event)
                 if window_event.type == .Quit {

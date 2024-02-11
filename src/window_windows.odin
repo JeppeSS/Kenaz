@@ -58,11 +58,11 @@ _initialize :: proc(p_window: ^Window) -> Window_Error {
 }
 
 
-_poll_event :: proc(p_window: ^Window, p_event: ^Event) -> (pending_event: bool) {
+_poll_event :: proc(p_window: ^Window) -> Event {
     message := win.MSG{}
-    if win.PeekMessageW(&message, nil, 0, 0, win.PM_REMOVE) {
+    for win.PeekMessageW(&message, nil, 0, 0, win.PM_REMOVE) {
         if message.message == win.WM_QUIT {
-            p_event^ = quit_window_event()
+            return quit_window_event()
         } else {
             win.TranslateMessage(&message)
             win.DispatchMessageW(&message)
@@ -73,11 +73,10 @@ _poll_event :: proc(p_window: ^Window, p_event: ^Event) -> (pending_event: bool)
     queue_len := len(p_window.queue)
     if queue_len != 0 {
         event := pop_front(&p_window.queue)
-        p_event^ = event
-        return true
+        return event
     }
     
-    return false
+    return none_event()
 }
 
 
