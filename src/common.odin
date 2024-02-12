@@ -34,8 +34,11 @@ Window_Event :: struct {
 
 
 Window_Event_Type :: enum u8 {
-    Quit   = 0,
-    Resize = 1
+    Quit      = 0,
+    Resize    = 1,
+    Maximize  = 2,
+    Minimize  = 3,
+    Restore   = 4
 }
 
 Position :: struct {
@@ -59,8 +62,8 @@ Window :: struct {
     position:       Position,
     size:           Size,
     mode:           Window_Mode,
-    queue:          [dynamic]Event,
-    is_open:        bool,
+    minimized:      bool,
+    queue:          [dynamic]Event, // TODO[Jeppe]: Is queue overkill? Would a single event be sufficient?
     using specific: Window_Os_Specific
 }
 

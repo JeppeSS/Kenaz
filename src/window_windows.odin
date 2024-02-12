@@ -10,6 +10,10 @@ Window_Os_Specific :: struct {
     handle:     win.HWND
 }
 
+WINDOW_RESIZED   :: 0
+WINDOW_MINIMIZED :: 1
+WINDOW_MAXIMIZED :: 2
+
 
 _initialize :: proc(p_window: ^Window) -> Window_Error {
     h_instance := cast(win.HINSTANCE)win.GetModuleHandleW(nil)
@@ -60,7 +64,7 @@ _initialize :: proc(p_window: ^Window) -> Window_Error {
 
 _poll_event :: proc(p_window: ^Window) -> Event {
     message := win.MSG{}
-    for win.PeekMessageW(&message, nil, 0, 0, win.PM_REMOVE) {
+    if win.PeekMessageW(&message, nil, 0, 0, win.PM_REMOVE) {
         if message.message == win.WM_QUIT {
             return quit_window_event()
         } else {
@@ -88,20 +92,37 @@ window_callback :: proc "stdcall" (window: win.HWND, message: win.UINT, wParam: 
             case win.WM_CLOSE, win.WM_DESTROY:
                 append(&p_window.queue, quit_window_event())
             case win.WM_PAINT:
-                    win.InvalidateRect(p_window.handle, nil, false)
+                win.InvalidateRect(p_window.handle, nil, false)
             case win.WM_SIZE:
-                new_size     := get_new_size(lParam)
-                current_size := p_window.size
-                if !is_size_equal(current_size, new_size) {
-                    win.InvalidateRect(p_window.handle, nil, false)
-                    p_window.size = new_size
-                    append(&p_window.queue, resize_window_event(new_size))
-                }                
+                handle_size_event(p_window, wParam, lParam)             
         }
     }
     return win.DefWindowProcW(window, message, wParam, lParam)
 }
 
+handle_size_event :: proc (p_window: ^Window, wParam: win.WPARAM, lParam: win.LPARAM) {
+    switch wParam {
+        case WINDOW_RESIZED:
+            if p_window.minimized {
+                p_window.minimized = false
+                append(&p_window.queue, restore_window_event())
+            } else {
+                new_size := get_new_size(lParam)
+                p_window.size = new_size
+                append(&p_window.queue, resize_window_event(new_size))
+            }
+        case WINDOW_MINIMIZED:
+            p_window.minimized = true
+            append(&p_window.queue, minimize_window_event())
+        case WINDOW_MAXIMIZED:
+            new_size := get_new_size(lParam)
+            p_window.size = new_size
+            append(&p_window.queue, maximize_window_event())
+    }
+
+    win.InvalidateRect(p_window.handle, nil, false)
+
+}
 
 get_new_size :: #force_inline proc "contextless" (lParam: win.LPARAM) -> Size {
     client_width  := u32(lParam & 0xffff)

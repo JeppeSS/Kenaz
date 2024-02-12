@@ -8,7 +8,6 @@ create :: proc(title := "Kenaz", position := Position{ 0, 0 }, size := Size{ 800
     p_window.position = position
     p_window.size     = size
     p_window.mode     = mode
-    p_window.is_open  = true
 
     // Initialize OS specific stuff
     error := _initialize(p_window)
@@ -25,4 +24,9 @@ create :: proc(title := "Kenaz", position := Position{ 0, 0 }, size := Size{ 800
 
 poll_event :: proc(p_window: ^Window) -> Event {
     return _poll_event(p_window)
+}
+
+
+destroy :: proc(p_window: ^Window) {
+    free(p_window)
 }

@@ -22,6 +22,12 @@ main :: proc(){
                     break game_loop
                 } else if window_event.type == .Resize {
                     log.info(window_event.data)
+                } else if window_event.type == .Maximize {
+                    log.info("Maximize!")
+                } else if window_event.type == .Minimize {
+                    log.info("Minimize!")
+                } else if window_event.type == .Restore {
+                    log.info("Restore!")
                 }
             }
         }
