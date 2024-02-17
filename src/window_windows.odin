@@ -15,7 +15,7 @@ WINDOW_MINIMIZED :: 1
 WINDOW_MAXIMIZED :: 2
 
 
-_initialize :: proc(p_window: ^Window) -> Window_Error {
+_initialize_os_specific :: proc(p_window: ^Window) -> Window_Error {
     h_instance := cast(win.HINSTANCE)win.GetModuleHandleW(nil)
     if h_instance == nil {
         return Create_Window_Error(win.GetLastError())
@@ -71,16 +71,18 @@ _poll_event :: proc(p_window: ^Window) -> Event {
             win.TranslateMessage(&message)
             win.DispatchMessageW(&message)
         }
-
     }
 
     queue_len := len(p_window.queue)
     if queue_len != 0 {
-        event := pop_front(&p_window.queue)
-        return event
+        return pop_front(&p_window.queue)
     }
     
     return none_event()
+}
+
+_destroy_os_specific :: proc(p_window: ^Window) {
+    win.DestroyWindow(p_window.handle)
 }
 
 
@@ -89,12 +91,22 @@ window_callback :: proc "stdcall" (window: win.HWND, message: win.UINT, wParam: 
     p_window := cast(^Window)cast(uintptr)win.GetWindowLongPtrW(window, win.GWLP_USERDATA)
     if p_window != nil { 
         switch message {
-            case win.WM_CLOSE, win.WM_DESTROY:
+            case win.WM_CLOSE:
                 append(&p_window.queue, quit_window_event())
+            case win.WM_DESTROY:
+                win.PostQuitMessage(0)
             case win.WM_PAINT:
                 win.InvalidateRect(p_window.handle, nil, false)
             case win.WM_SIZE:
-                handle_size_event(p_window, wParam, lParam)             
+                handle_size_event(p_window, wParam, lParam)
+            case win.WM_MOVE:
+                // TODO[Jeppe]: Is it an issue that the x or y position jumps to a large number if moved outside the screen?
+                new_x := u32(lParam & 0xffff)
+                new_y := u32(lParam >> 16)
+                new_position := Position{ new_x, new_y }
+                p_window.position = new_position
+                append(&p_window.queue, move_window_event(new_position))
+
         }
     }
     return win.DefWindowProcW(window, message, wParam, lParam)
@@ -126,6 +138,6 @@ handle_size_event :: proc (p_window: ^Window, wParam: win.WPARAM, lParam: win.LP
 
 get_new_size :: #force_inline proc "contextless" (lParam: win.LPARAM) -> Size {
     client_width  := u32(lParam & 0xffff)
-    client_height := u32((lParam & 0xffff0000) >> 16)
+    client_height := u32(lParam >> 16)
     return Size{ client_width, client_height }
 }

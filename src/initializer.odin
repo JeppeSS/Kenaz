@@ -24,3 +24,7 @@ resize_window_event :: #force_inline proc "contextless" (size: Size) -> Event {
     return Event { type = .Window_Event, data = Window_Event{ type = .Resize, data = size } }
 }
 
+
+move_window_event :: #force_inline proc "contextless" (position: Position) -> Event {
+    return Event { type = .Window_Event, data = Window_Event{ type = .Move, data = position } }
+}

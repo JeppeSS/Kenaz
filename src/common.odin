@@ -28,7 +28,8 @@ Event_Type :: enum u8 {
 Window_Event :: struct {
     type: Window_Event_Type,
     data: union {
-        Size
+        Size,
+        Position
     }
 }
 
@@ -38,7 +39,8 @@ Window_Event_Type :: enum u8 {
     Resize    = 1,
     Maximize  = 2,
     Minimize  = 3,
-    Restore   = 4
+    Restore   = 4,
+    Move      = 5
 }
 
 Position :: struct {

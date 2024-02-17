@@ -3,14 +3,14 @@ package kenaz
 import "core:log"
 
 create :: proc(title := "Kenaz", position := Position{ 0, 0 }, size := Size{ 800, 640 }, mode: Window_Mode = .Windowed) -> (^Window, Window_Error) {
-    p_window          := new(Window)
-    p_window.title    = title
-    p_window.position = position
-    p_window.size     = size
-    p_window.mode     = mode
+    p_window           := new(Window)
+    p_window.title     = title
+    p_window.position  = position
+    p_window.size      = size
+    p_window.mode      = mode
+    p_window.minimized = false
 
-    // Initialize OS specific stuff
-    error := _initialize(p_window)
+    error := _initialize_os_specific(p_window)
 
     log.info("> Creating window...")
     log.infof("  => Title: %s", p_window.title)
@@ -28,5 +28,6 @@ poll_event :: proc(p_window: ^Window) -> Event {
 
 
 destroy :: proc(p_window: ^Window) {
+    delete(p_window.queue)
     free(p_window)
 }
